@@ -6,7 +6,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)  # Champ email unique
     last_name = models.CharField(max_length=50)
     first_name = models.CharField(max_length=50)
-    profil = models.ImageField(blank=True, null=True)  # Facultatif
+    profile = models.ImageField(blank=True, null=True)  # Facultatif
     username = models.CharField(max_length=150, blank=True, null=True)
     USERNAME_FIELD = 'email'  # Utiliser `email` comme identifiant principal
     REQUIRED_FIELDS = ['first_name', 'last_name']  # Champs obligatoires lors de la création de l'utilisateur
