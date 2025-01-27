@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'cloudinary',
+    'cloudinary_storage',
     'myapp',
     'authentication',
 ]
@@ -94,6 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,  # Longueur minimale du mot de passe
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -131,3 +137,18 @@ AUTH_USER_MODEL = 'authentication.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Durée du token d'accès
+    'REFRESH_TOKEN_LIFETIME': timedelta(weeks=1),    # Durée du token de rafraîchissement
+    'ROTATE_REFRESH_TOKENS': True,                  # Rotation activée
+    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist des anciens tokens
+}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dvronxeij',
+    'API_KEY': '571278674726854',
+    'API_SECRET': 'ZqhINpbF32BiEEDWxVtE5K2hb0Q'
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
