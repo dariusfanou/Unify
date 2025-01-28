@@ -8,6 +8,7 @@ from authentication.models import User
 class UserSerializer(ModelSerializer):
 
     profile = serializers.ImageField(
+        required=False,
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
     )
     password = serializers.CharField(write_only=True, validators=[validate_password])

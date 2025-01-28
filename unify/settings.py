@@ -40,14 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'cloudinary',
-    'cloudinary_storage',
+    # 'cloudinary',
+    # 'cloudinary_storage',
     'myapp',
     'authentication',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -126,6 +127,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -145,10 +147,19 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,               # Blacklist des anciens tokens
 }
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dvronxeij',
-    'API_KEY': '571278674726854',
-    'API_SECRET': 'ZqhINpbF32BiEEDWxVtE5K2hb0Q'
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'dvronxeij',
+#     'API_KEY': '571278674726854',
+#     'API_SECRET': 'ZqhINpbF32BiEEDWxVtE5K2hb0Q'
+# }
+
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/darius12/Unify/media/'
