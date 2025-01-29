@@ -24,6 +24,8 @@ from django.conf.urls.static import static
 from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from authentication.views import ForgotPasswordView, ResetPasswordView
+
 router = SimpleRouter()
 router.register('posts', PostViewSet, basename="post")
 router.register('users', UserViewSet, basename='user')
@@ -33,6 +35,8 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
+    path('reset-password/<int:user_id>/<str:token>/', ResetPasswordView.as_view(), name='reset-password'),
     path('', include(router.urls))
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

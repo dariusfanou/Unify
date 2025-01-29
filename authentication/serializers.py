@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import FileExtensionValidator
@@ -37,3 +37,10 @@ class UserSerializer(ModelSerializer):
             user.profile = profile
             user.save()
         return user
+
+class ForgotPasswordSerializer(Serializer):
+    email = serializers.EmailField()
+
+class ResetPasswordSerializer(Serializer):
+    new_password = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
