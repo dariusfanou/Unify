@@ -40,8 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'cloudinary',
-    'cloudinary_storage',
+    # 'cloudinary',
+    # 'cloudinary_storage',
     'myapp',
     'authentication',
 ]
@@ -153,10 +153,27 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,               # Blacklist des anciens tokens
 }
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dvronxeij',
-    'API_KEY': '571278674726854',
-    'API_SECRET': 'ZqhINpbF32BiEEDWxVtE5K2hb0Q'
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': 'dvronxeij',
+#     'API_KEY': '571278674726854',
+#     'API_SECRET': 'ZqhINpbF32BiEEDWxVtE5K2hb0Q'
+# }
+
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/darius12/Unify/media/'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dariusfanou@gmail.com'
+EMAIL_HOST_PASSWORD = 'bbkpshxvxyfoatdt'
+DEFAULT_FROM_EMAIL = 'info@unify.com'
