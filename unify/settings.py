@@ -143,7 +143,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.User'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',),
+    'DATETIME_FORMAT': "%d/%m/%Y %H:%M",
+    'DATE_FORMAT': "%d/%m/%Y",
 }
 
 SIMPLE_JWT = {
@@ -177,3 +179,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dariusfanou@gmail.com'
 EMAIL_HOST_PASSWORD = 'bbkpshxvxyfoatdt'
 DEFAULT_FROM_EMAIL = 'info@unify.com'
+

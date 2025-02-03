@@ -8,6 +8,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=50)
     profile = models.ImageField(upload_to='images/' ,blank=True, null=True)
     birthday = models.DateField(null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
     username = models.CharField(max_length=150, blank=True, null=True)
     USERNAME_FIELD = 'email'  # Utiliser `email` comme identifiant principal
     REQUIRED_FIELDS = ['first_name', 'last_name']  # Champs obligatoires lors de la création de l'utilisateur
