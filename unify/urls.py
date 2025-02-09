@@ -16,19 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from myapp.views import PostViewSet
-from authentication.views import UserViewSet
+from myapp.views import PostViewSet, CommentViewSet, LikePostView
+from authentication.views import UserViewSet, ForgotPasswordView, ResetPasswordView, FollowUserView, UnfollowUserView, IsFollowingView
 from django.conf import settings
 from django.conf.urls.static import static
 
 from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from authentication.views import ForgotPasswordView, ResetPasswordView
-
 router = SimpleRouter()
-router.register('posts', PostViewSet, basename="post")
-router.register('users', UserViewSet, basename='user')
+router.register('posts', PostViewSet, basename="posts")
+router.register('users', UserViewSet, basename='users')
+router.register('comments', CommentViewSet, basename='comments')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,6 +36,10 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot-password'),
     path('reset-password/<int:user_id>/<str:token>/', ResetPasswordView.as_view(), name='reset-password'),
-    path('', include(router.urls))
+    path('posts/<int:post_id>/like/', LikePostView.as_view(), name='like_post'),
+    path("users/<int:user_id>/follow/", FollowUserView.as_view(), name="follow_user"),
+    path("users/<int:user_id>/unfollow/", UnfollowUserView.as_view(), name="unfollow_user"),
+    path("users/<int:user_id>/is_following/", IsFollowingView.as_view(), name="is_following"),
+    path('', include(router.urls)),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

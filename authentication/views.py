@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,27 +7,33 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import password_validation
+from django.shortcuts import get_object_or_404
 
 from authentication.serializers import UserSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
 from authentication.models import User
 
-class UserViewSet(ModelViewSet):
+class IsOwnerOrAdmin(BasePermission):
+    """
+    Permission qui permet aux utilisateurs normaux de modifier uniquement leurs propres données
+    et aux admins de modifier n'importe quel utilisateur.
+    """
 
+    def has_object_permission(self, request, view, obj):
+        if request.method in ["PUT", "PATCH", "DELETE"]:
+            return request.user.is_superuser or obj.id == request.user.id  # Admin ou proprio
+        return True  # GET est autorisé pour tout le monde
+
+class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def get_permissions(self):
-
         if self.action == 'create':
-            permission_classes = [AllowAny]
-        else:
-            permission_classes = [IsAuthenticated]
+            return [AllowAny()]  # Tout le monde peut s'inscrire
 
-        return [permission() for permission in permission_classes]
+        return [IsAuthenticated(), IsOwnerOrAdmin()]
 
     def get_queryset(self):
-        if self.request.user.is_superuser:  # Si l'utilisateur est admin, il voit tout
-            return User.objects.all()
-        return User.objects.filter(id=self.request.user.id)  # Sinon, uniquement ses propres données
+        return User.objects.all()  # Tout le monde peut voir tous les utilisateurs
 
 class ForgotPasswordView(APIView):
     """
@@ -96,3 +102,42 @@ class ResetPasswordView(APIView):
             return Response({"detail": "Le mot de passe a été réinitialisé avec succès."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FollowUserView(APIView):
+
+    def post(self, request, user_id):
+        """Permet de suivre un utilisateur"""
+        try:
+            user = request.user  # L'utilisateur connecté
+            user_to_follow = User.objects.get(id=user_id)
+
+            if user == user_to_follow:
+                return Response({"message": "Vous ne pouvez pas vous suivre vous-même."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.follow(user_to_follow)
+            return Response({"message": "Utilisateur suivi avec succès."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"message": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+class UnfollowUserView(APIView):
+
+    def post(self, request, user_id):
+        """Permet de se désabonner d'un utilisateur"""
+        try:
+            user = request.user
+            user_to_unfollow = User.objects.get(id=user_id)
+
+            user.unfollow(user_to_unfollow)
+            return Response({"message": "Désabonnement réussi."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"message": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+class IsFollowingView(APIView):
+
+    def get(self, request, user_id):
+        """Vérifie si l'utilisateur connecté suit un autre utilisateur"""
+        user = request.user  # L'utilisateur connecté
+        user_to_check = get_object_or_404(User, id=user_id)
+
+        is_following = user.is_following(user_to_check)
+        return Response({"is_following": is_following}, status=status.HTTP_200_OK)
