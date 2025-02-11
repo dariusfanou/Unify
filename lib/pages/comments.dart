@@ -6,36 +6,39 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unify/auth_provider.dart';
 import 'package:unify/custom_appbar.dart';
 import 'package:unify/flutter_helpers/services/post_service.dart';
 import 'package:unify/post.dart';
 
-import '../auth_provider.dart';
 import '../flutter_helpers/services/user_service.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class CommentsScreen extends StatefulWidget {
+  const CommentsScreen({super.key, this.post, this.postId});
+
+  final Map<String, dynamic>? post;
+  final int? postId;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<CommentsScreen> createState() => _CommentsScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _CommentsScreenState extends State<CommentsScreen> {
 
   bool isLoading = false;
-  final postService = PostService();
-  final userService = UserService();
-  List<dynamic> posts = [];
   late AuthProvider authProvider;
+  final userService = UserService();
+  final postService = PostService();
+  Map<String, dynamic>? post;
 
-  getAll() async {
+  getPost() async {
 
     setState(() {
       isLoading = true;
     });
 
     try {
-      posts = await postService.getAll();
+      post = await postService.get(widget.postId!);
       setState(() {});
     } on DioException catch (error) {
       print(error.response?.statusCode);
@@ -48,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (refreshToken.containsKey("access") && refreshToken.containsKey("refresh")) {
               await prefs.setString("token", refreshToken["access"]);
               await prefs.setString("refresh", refreshToken["refresh"]);
-              posts = await postService.getAll();
+              post = await postService.get(widget.postId!);
               setState(() {});
             }
           } else {
@@ -80,28 +83,24 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
     super.initState();
     authProvider = Provider.of<AuthProvider>(context, listen: false);
-    getAll();
+    if(widget.postId != null) {
+      getPost();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "UNIFY", leading: false,),
+      appBar: CustomAppBar(title: (widget.postId != null && post?["author"]["username"] != null ) ? post!["author"]["username"] : widget.post?["author"]["username"] ?? "", leading: false),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(),
       )
           : SingleChildScrollView(
-        child: ListView.builder(
-            shrinkWrap: true,  // Ajoute cette ligne
-            physics: NeverScrollableScrollPhysics(),  // Désactive le défilement du ListView
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              return PostScreen(
-                  post: posts[index],
-                  backgroundColor: Color(0x204CB669),
-              );
-            }
+        child: PostScreen(
+          post: (widget.postId != null) ? post! : widget.post!,
+          backgroundColor: Colors.transparent,
+          withComments: true,
         ),
       ),
     );

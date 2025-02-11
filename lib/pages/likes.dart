@@ -7,35 +7,34 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unify/custom_appbar.dart';
-import 'package:unify/flutter_helpers/services/post_service.dart';
-import 'package:unify/post.dart';
+import 'package:unify/flutter_helpers/services/user_service.dart';
 
 import '../auth_provider.dart';
-import '../flutter_helpers/services/user_service.dart';
+import '../flutter_helpers/services/post_service.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class LikesScreen extends StatefulWidget {
+  const LikesScreen({super.key, required this.post_id});
+
+  final String? post_id;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<LikesScreen> createState() => _LikesScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _LikesScreenState extends State<LikesScreen> {
 
   bool isLoading = false;
   final postService = PostService();
   final userService = UserService();
-  List<dynamic> posts = [];
+  Map<String, dynamic>? likes;
   late AuthProvider authProvider;
 
-  getAll() async {
-
+  getLikes() async {
     setState(() {
       isLoading = true;
     });
-
     try {
-      posts = await postService.getAll();
+      likes = await postService.getLikes(widget.post_id!);
       setState(() {});
     } on DioException catch (error) {
       print(error.response?.statusCode);
@@ -48,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (refreshToken.containsKey("access") && refreshToken.containsKey("refresh")) {
               await prefs.setString("token", refreshToken["access"]);
               await prefs.setString("refresh", refreshToken["refresh"]);
-              posts = await postService.getAll();
+              likes = await postService.getLikes(widget.post_id!);
               setState(() {});
             }
           } else {
@@ -72,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
         isLoading = false;
       });
     }
-
   }
 
   @override
@@ -80,28 +78,48 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
     super.initState();
     authProvider = Provider.of<AuthProvider>(context, listen: false);
-    getAll();
+    getLikes();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "UNIFY", leading: false,),
+      appBar: CustomAppBar(title: "Likes", leading: true,),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(),
       )
           : SingleChildScrollView(
         child: ListView.builder(
-            shrinkWrap: true,  // Ajoute cette ligne
-            physics: NeverScrollableScrollPhysics(),  // Désactive le défilement du ListView
-            itemCount: posts.length,
-            itemBuilder: (context, index) {
-              return PostScreen(
-                  post: posts[index],
-                  backgroundColor: Color(0x204CB669),
-              );
-            }
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+          itemCount: likes!["likes"].length,
+          itemBuilder: (context, index) {
+            return Card(
+              margin: EdgeInsets.symmetric(vertical: 8),
+              elevation: 0,
+              color: Colors.white,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: CircleAvatar(
+                      radius: 28, // Ajusté pour éviter un déséquilibre
+                      backgroundImage: (likes!["likes"][index]["profile"] != null && likes!["likes"][index]["profile"].isNotEmpty)
+                          ? NetworkImage(likes!["likes"][index]["profile"])
+                          : null,
+                      child: (likes!["likes"][index]["profile"] == null || likes!["likes"][index]["profile"].isEmpty)
+                          ? Icon(Icons.person, size: 40, color: Colors.black54)
+                          : null,
+                    ),
+                    title: Text("${likes!["likes"][index]["username"]}"),
+                    onTap: () {
+                      context.go("/user/${likes!["likes"][index]["id"]}");
+                    },
+                  )
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

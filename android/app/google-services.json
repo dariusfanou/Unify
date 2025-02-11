@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "953698956925",
+    "project_id": "unify-e53ad",
+    "storage_bucket": "unify-e53ad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:953698956925:android:1db2a92d0a87811691a314",
+        "android_client_info": {
+          "package_name": "com.example.unify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWSoHpKAFzD00twDng066BM1zfKgqrG-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
