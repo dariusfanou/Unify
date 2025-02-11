@@ -4,9 +4,14 @@ from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from myapp.models import Post, Comment
-from myapp.serializers import PostSerializer, LikePostSerializer, CommentSerializer
+from myapp.models import Post, Comment, Notification, Message
+from myapp.serializers import PostSerializer, LikePostSerializer, CommentSerializer, NotificationSerializer, MessageSerializer
 from authentication.serializers import UserSerializer
+
+from django.db.models import Q
+from unidecode import unidecode
+
+from authentication.models import User
 
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
@@ -88,9 +93,9 @@ class LikePostView(APIView):
             user = request.user
 
             if post.likes.filter(id=user.id).exists():
-                post.likes.remove(user)  # Supprime le like
+                post.likes.remove(user)
             else:
-                post.likes.add(user)  # Ajoute le like
+                post.likes.add(user)
 
             serializer = LikePostSerializer(post, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -151,3 +156,70 @@ class CommentViewSet(ModelViewSet):
             {"detail": "Vous n'avez pas la permission de supprimer ce commentaire."},
             status=status.HTTP_403_FORBIDDEN
         )
+
+class SearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('q', '')  # La recherche est passée dans les paramètres de requête
+
+        if query:
+            # Prépare la query en la normalisant (en minuscules et sans accents)
+            normalized_query = unidecode(query.lower())
+
+            # Recherche dans les utilisateurs (username) sans différence entre majuscules/minuscules et sans accents
+            users = User.objects.filter(
+                Q(username__icontains=normalized_query) |
+                Q(username__iexact=normalized_query)
+            )
+
+            # Recherche dans les posts (content) sans différence entre majuscules/minuscules et sans accents
+            posts = Post.objects.filter(
+                Q(content__icontains=normalized_query) |
+                Q(content__iexact=normalized_query)
+            )
+
+            # Sérialise les résultats
+            user_serializer = UserSerializer(users, many=True)
+            post_serializer = PostSerializer(posts, many=True)
+
+            return Response({
+                'users': user_serializer.data,
+                'posts': post_serializer.data
+            })
+
+        return Response({
+            'message': 'Aucune requête fournie'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+class NotificationViewSet(ModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(receiver=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(sender=self.request.user)
+
+    def partial_update(self, request, *args, **kwargs):
+        notification = self.get_object()
+        if request.user == notification.receiver or request.user.is_superuser:
+            return super().partial_update(request, *args, **kwargs)
+        return Response(
+            {"detail": "Vous n'avez pas la permission de modifier cette notification."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        notification = self.get_object()
+        if request.user == notification.receiver or request.user.is_superuser:
+            return super().destroy(request, *args, **kwargs)
+        return Response(
+            {"detail": "Vous n'avez pas la permission de supprimer cette notification."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+class MessageViewSet(ModelViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer

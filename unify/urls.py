@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from myapp.views import PostViewSet, CommentViewSet, LikePostView
+from myapp.views import PostViewSet, CommentViewSet, LikePostView, SearchView, NotificationViewSet, MessageViewSet
 from authentication.views import UserViewSet, ForgotPasswordView, ResetPasswordView, FollowUserView, UnfollowUserView, IsFollowingView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -28,6 +28,8 @@ router = SimpleRouter()
 router.register('posts', PostViewSet, basename="posts")
 router.register('users', UserViewSet, basename='users')
 router.register('comments', CommentViewSet, basename='comments')
+router.register('notifications', NotificationViewSet, basename='notifications')
+router.register('messages', MessageViewSet, basename='messages')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -40,6 +42,7 @@ urlpatterns = [
     path("users/<int:user_id>/follow/", FollowUserView.as_view(), name="follow_user"),
     path("users/<int:user_id>/unfollow/", UnfollowUserView.as_view(), name="unfollow_user"),
     path("users/<int:user_id>/is_following/", IsFollowingView.as_view(), name="is_following"),
+    path('search/', SearchView.as_view(), name='search'),
     path('', include(router.urls)),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

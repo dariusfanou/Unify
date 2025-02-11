@@ -104,6 +104,7 @@ class ResetPasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, user_id):
         """Permet de suivre un utilisateur"""
@@ -120,6 +121,7 @@ class FollowUserView(APIView):
             return Response({"message": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
 class UnfollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, user_id):
         """Permet de se désabonner d'un utilisateur"""
@@ -133,6 +135,7 @@ class UnfollowUserView(APIView):
             return Response({"message": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
 class IsFollowingView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         """Vérifie si l'utilisateur connecté suit un autre utilisateur"""

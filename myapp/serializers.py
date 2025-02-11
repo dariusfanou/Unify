@@ -1,19 +1,27 @@
 from rest_framework.serializers import ModelSerializer
 
-from myapp.models import Post, Comment
+from myapp.models import Post, Comment, Notification, Message
 from authentication.serializers import UserSerializer
 from rest_framework import serializers
+from myapp.mixins import TimeAgoMixin
+from django.core.validators import FileExtensionValidator
 
-class PostSerializer(ModelSerializer):
+from authentication.models import User
+
+class PostSerializer(TimeAgoMixin, ModelSerializer):
 
     author = UserSerializer(read_only=True)
     comments_count = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+    image = serializers.ImageField(
+        required=False,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
+    )
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'content', 'created_at', 'updated_at', 'comments_count', 'likes_count', 'has_liked']
+        fields = ['id', 'author', 'content', 'image', 'created_at', 'updated_at', 'comments_count', 'likes_count', 'has_liked', 'time_ago']
 
     def get_comments_count(self, obj):
         return obj.comments.count()
@@ -42,10 +50,33 @@ class LikePostSerializer(serializers.ModelSerializer):
             return obj.has_liked(user)
         return False
 
-class CommentSerializer(ModelSerializer):
+class CommentSerializer(TimeAgoMixin, ModelSerializer):
 
     author = UserSerializer(read_only=True)
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        exclude = ('post',)
+
+class NotificationSerializer(TimeAgoMixin, ModelSerializer):
+
+    sender = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = "__all__"
+
+class MessageSerializer(TimeAgoMixin, ModelSerializer):
+    sender = UserSerializer(read_only=True)
+    sender_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True
+    )
+    recipient = UserSerializer(read_only=True)
+    recipient_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True
+    )
+
+    class Meta:
+        model = Message
+        fields = "__all__"
+

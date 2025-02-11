@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializer):
 
     profile = serializers.ImageField(
         required=False,
@@ -21,7 +21,6 @@ class UserSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(required=False, allow_blank=True, style={'base_template': 'textarea.html'})
     password = serializers.CharField(write_only=True, validators=[validate_password], required=False)
     confirm_password = serializers.CharField(write_only=True, required=False)
-    username = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     is_current_user = serializers.SerializerMethodField()
     followers_count = serializers.SerializerMethodField()
@@ -32,8 +31,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name', 'profile', 'birthday', 'bio', 'password', 'confirm_password',
-            'username', 'created_at', 'is_current_user', 'followers_count', 'following_count', 'followers', 'following'
+            'id', 'email', 'username', 'profile', 'birthday', 'bio', 'password', 'confirm_password', 'created_at', 'is_current_user',
+            'followers_count', 'following_count', 'followers', 'following'
         ]
 
     def get_is_current_user(self, obj):
@@ -78,8 +77,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         user = User.objects.create_user(
             email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
+            username=validated_data['username'],
             password=validated_data['password']
         )
 
